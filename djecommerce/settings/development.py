@@ -33,7 +33,7 @@ def show_toolbar(request):
 
 DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': False,
-    'SHOW_TOOLBAR_CALLBACK': lambda r: False,
+    'SHOW_TOOLBAR_CALLBACK': show_toolbar
 }
 
 DATABASES = {
