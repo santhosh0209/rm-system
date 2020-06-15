@@ -1,3 +1,4 @@
+asgiref==3.2.7
 autopep8==1.4.4
 Babel==2.8.0
 certifi==2019.3.9
@@ -12,6 +13,7 @@ django-extra-views==0.11.0
 django-haystack==2.8.1
 django-oscar==2.0.4
 django-phonenumber-field==2.0.1
+django-six==1.0.4
 django-tables2==1.21.2
 django-treebeard==4.3.1
 django-widget-tweaks==1.4.8
