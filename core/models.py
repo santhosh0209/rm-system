@@ -7,31 +7,36 @@ from django_countries.fields import CountryField
 
 
 CATEGORY_CHOICES = (
-    ('C', 'Carpet'),
-    ('K', 'Kurtis'),
-    ('PM', 'Paper Machie'),
-    ('SH', 'Shawls'),
-    ('ST', 'Stoles'),
+
+    ('S', 'Starters'),
+    ('BF', 'Breakfast'),
+    ('M', 'MainCourse'),
+    ('SO', 'Soups'),
+    ('B', 'Beverage'),
+
+)
+
+AV = (
+
+    ('A', 'Available'),
+    ('NA', 'Sold Out'),
 
 )
 
 LABEL_CHOICES = (
-    ('primary', 'New'),
+    ('primary', "Chef's Special"),
     ('secondary', 'Best Seller'),
-    ('danger', 'On Offer')
-)
-
-ADDRESS_CHOICES = (
-    ('B', 'Billing'),
-    ('S', 'Shipping'),
+    ('danger', 'Must Try')
 )
 
 
 class UserProfile(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    stripe_customer_id = models.CharField(max_length=50, blank=True, null=True)
-    one_click_purchasing = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = " Customer"
+        verbose_name_plural = " Customers"
 
     def __str__(self):
         return self.user.username
@@ -46,7 +51,12 @@ class Item(models.Model):
     slug = models.SlugField(
         help_text='Please enter the product name or any other uniquie no for this Product(without space)', verbose_name='Uniquie Id')
     description = models.TextField()
+    availability = models.CharField(choices=AV, max_length=2)
     image = models.ImageField()
+
+    class Meta:
+        verbose_name = " Food Item"
+        verbose_name_plural = " Food Items"
 
     def __str__(self):
         return self.title
@@ -74,6 +84,10 @@ class OrderItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
 
+    class Meta:
+        verbose_name = " Ordered Item"
+        verbose_name_plural = " Ordered Items"
+
     def __str__(self):
         return f"{self.quantity} of {self.item.title}"
 
@@ -100,29 +114,10 @@ class Order(models.Model):
     start_date = models.DateTimeField(auto_now_add=True)
     ordered_date = models.DateTimeField()
     ordered = models.BooleanField(default=False)
-    shipping_address = models.ForeignKey(
-        'Address', related_name='shipping_address', on_delete=models.SET_NULL, blank=True, null=True)
-    billing_address = models.ForeignKey(
-        'Address', related_name='billing_address', on_delete=models.SET_NULL, blank=True, null=True)
-    payment = models.ForeignKey(
-        'Payment', on_delete=models.SET_NULL, blank=True, null=True)
-    coupon = models.ForeignKey(
-        'Coupon', on_delete=models.SET_NULL, blank=True, null=True)
-    being_delivered = models.BooleanField(default=False)
-    received = models.BooleanField(default=False)
-    refund_requested = models.BooleanField(default=False)
-    refund_granted = models.BooleanField(default=False)
 
-    '''
-    1. Item added to cart
-    2. Adding a billing address
-    (Failed checkout)
-    3. Payment
-    (Preprocessing, processing, packaging etc.)
-    4. Being delivered
-    5. Received
-    6. Refunds
-    '''
+    class Meta:
+        verbose_name = " Ordered Detail"
+        verbose_name_plural = " Ordered Details"
 
     def __str__(self):
         return self.user.username
@@ -131,59 +126,7 @@ class Order(models.Model):
         total = 0
         for order_item in self.items.all():
             total += order_item.get_final_price()
-        if self.coupon:
-            total -= self.coupon.amount
         return total
-
-
-class Address(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                             on_delete=models.CASCADE)
-    street_address = models.CharField(max_length=100)
-    apartment_address = models.CharField(max_length=100)
-    country = CountryField(multiple=False)
-    zip = models.CharField(max_length=100)
-    address_type = models.CharField(max_length=1, choices=ADDRESS_CHOICES)
-    default = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.user.username
-
-    class Meta:
-        verbose_name_plural = 'Addresses'
-
-
-class Payment(models.Model):
-    stripe_charge_id = models.CharField(max_length=50)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                             on_delete=models.SET_NULL, blank=True, null=True)
-    amount = models.FloatField()
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.user.username
-
-
-class Coupon(models.Model):
-    code = models.CharField(max_length=15)
-    amount = models.FloatField()
-
-    def __str__(self):
-        return self.code
-
-
-class Carousel(models.Model):
-    image = models.ImageField(upload_to='media_root')
-
-
-class Refund(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    reason = models.TextField()
-    accepted = models.BooleanField(default=False)
-    email = models.EmailField()
-
-    def __str__(self):
-        return f"{self.pk}"
 
 
 def userprofile_receiver(sender, instance, created, *args, **kwargs):
