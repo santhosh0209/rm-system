@@ -56,5 +56,5 @@ svgwrite==1.4
 text-unidecode==1.3
 Tree==0.2.4
 upgrade-requirements==1.7.0
-urllib3==1.24.2
+urllib3==1.26.5
 whitenoise==5.1.0
